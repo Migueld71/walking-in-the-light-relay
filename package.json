@@ -1,0 +1,9 @@
+{
+  "name": "walking-in-the-light-relay",
+  "version": "1.0.0",
+  "description": "Walking in the Light Radio relay",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
