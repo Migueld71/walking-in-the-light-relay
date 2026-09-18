@@ -1,0 +1,9 @@
+{
+  "name": "Walking in the Light Radio",
+  "short_name": "WITL Radio",
+  "description": "24/7 Christian Music, Faith and Encouragement",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f"
+}
