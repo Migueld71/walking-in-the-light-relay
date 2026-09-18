@@ -1,5 +1,6 @@
 const http = require("http");
 const https = require("https");
+const fs = require("fs");
 
 const PORT = process.env.PORT || 8080;
 
@@ -8,10 +9,17 @@ const STREAM_URL = "http://51.255.235.165:3988/stream";
 
 const server = http.createServer((req, res) => {
   if (req.url === "/") {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("Walking in the Light Radio relay is running.");
-    return;
-  }
+  fs.readFile("index.html", (err, data) => {
+    if (err) {
+      res.writeHead(500);
+      res.end("Error loading radio page");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
+  });
+  return;
+}
 
   if (req.url === "/stream") {
     const client = STREAM_URL.startsWith("https") ? https : http;
