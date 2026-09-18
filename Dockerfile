@@ -2,7 +2,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY server.js index.html ./
+COPY server.js index.html manifest.json sw.js ./
 
 ENV PORT=8080
 
