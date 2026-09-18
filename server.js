@@ -45,7 +45,18 @@ if (req.url === "/sw.js") {
   });
   return;
 }
-  
+  if (req.url === "/icon-192.png" || req.url === "/icon-512.png") {
+  fs.readFile(__dirname + req.url, (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/png" });
+    res.end(data);
+  });
+  return;
+  }
   
   if (req.url === "/stream") {
     const client = STREAM_URL.startsWith("https") ? https : http;
