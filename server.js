@@ -9,7 +9,7 @@ const STREAM_URL = "http://51.255.235.165:3988/stream";
 
 const server = http.createServer((req, res) => {
   if (req.url === "/") {
-  fs.readFile("index.html", (err, data) => {
+  fs.readFile(__dirname + "/index.html", (err, data) => {
     if (err) {
       res.writeHead(500);
       res.end("Error loading radio page");
