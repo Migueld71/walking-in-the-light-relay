@@ -20,7 +20,33 @@ const server = http.createServer((req, res) => {
   });
   return;
 }
+if (req.url === "/manifest.json") {
+  fs.readFile(__dirname + "/manifest.json", (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/manifest+json" });
+    res.end(data);
+  });
+  return;
+}
 
+if (req.url === "/sw.js") {
+  fs.readFile(__dirname + "/sw.js", (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/javascript" });
+    res.end(data);
+  });
+  return;
+}
+  
+  
   if (req.url === "/stream") {
     const client = STREAM_URL.startsWith("https") ? https : http;
 
