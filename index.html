@@ -3,19 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
+
   <title>Walking in the Light Radio</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 25px;
+      font-family: Arial, sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at top, #17345a 0%, #0b1c32 35%, #050b14 75%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .radio-card {
+      width: 100%;
+      max-width: 500px;
+      padding: 35px 25px;
+      border-radius: 25px;
+      background: rgba(7, 17, 31, 0.9);
+      text-align: center;
+    }
+
+    .live {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 30px;
+      background: #c62828;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 36px;
+    }
+
+    .subtitle {
+      margin-top: 15px;
+      font-size: 18px;
+      color: #b9c9dc;
+    }
+
+    .verse {
+      margin: 30px 0 8px;
+      font-size: 17px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .reference {
+      color: #9fb4cc;
+      margin-bottom: 25px;
+    }
+
+    audio {
+      width: 100%;
+      margin: 10px 0 25px;
+    }
+
+    .message {
+      font-size: 18px;
+      line-height: 1.6;
+      font-weight: bold;
+    }
+
+    .footer {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.15);
+      color: #9fb4cc;
+      font-size: 14px;
+    }
+  </style>
 </head>
+
 <body>
 
-  <h1>Walking in the Light Radio</h1>
-  <p>24/7 Christian Radio</p>
+  <main class="radio-card">
 
-  <audio controls autoplay>
-    <source src="/stream" type="audio/mpeg">
-    Your browser does not support the audio player.
-  </audio>
+    <div class="live">● LIVE 24/7</div>
 
-  <p>Jesus is Lord • Music • Faith • Encouragement</p>
+    <h1>Walking in the Light Radio</h1>
+
+    <div class="subtitle">
+      Christian Music • Faith • Encouragement
+    </div>
+
+    <div class="verse">
+      “Whoever follows me will not walk in darkness,
+      but will have the light of life.”
+    </div>
+
+    <div class="reference">
+      John 8:12
+    </div>
+
+    <audio controls>
+      <source src="/stream" type="audio/mpeg">
+      Your browser does not support the audio player.
+    </audio>
+
+    <div class="message">
+      Jesus is Lord • Music • Faith • Encouragement
+    </div>
+
+    <div class="footer">
+      Walking in the Light Radio
+    </div>
+
+  </main>
 
 </body>
 </html>
