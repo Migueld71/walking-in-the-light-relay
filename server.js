@@ -1,4 +1,5 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
@@ -24,19 +25,14 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === "/stream") {
-    const upstreamRequest = http.get(STREAM_URL, (streamRes) => {
-      const statusCode = streamRes.statusCode || 200;
-
-      res.writeHead(statusCode, {
+    const upstreamRequest = https.get(STREAM_URL, (streamRes) => {
+      res.writeHead(streamRes.statusCode || 200, {
         "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
+        "Access-Control-Allow-Origin": "*"
       });
-
       streamRes.pipe(res);
     });
 
