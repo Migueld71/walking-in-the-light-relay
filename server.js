@@ -91,48 +91,94 @@ if (req.url === "/sw.js") {
       "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
       "Cache-Control": "no-cache, no-store",
       "Connection": "keep-alive"
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+
+const PORT = process.env.PORT || 8080;
+
+// Radio stream
+const STREAM_URL = "http://51.255.235.165:3988/stream";
+
+const server = http.createServer((req, res) => {
+
+  // Relay the radio stream
+  if (req.url === "/stream") {
+    const streamReq = http.get(STREAM_URL, (streamRes) => {
+
+      res.writeHead(200, {
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+      });
+
+      streamRes.pipe(res);
+
+      req.on("close", () => {
+        streamReq.destroy();
+      });
     });
 
-streamRes.pipe(res);
-return;
-streamRes.on("error", () => {
-  removeListener();
-  if (!res.writableEnded) res.end();
-});
-});
+    streamReq.on("error", (err) => {
+      console.error("Stream error:", err);
+      if (!res.headersSent) {
+        res.writeHead(502, {
+          "Content-Type": "text/plain"
+        });
+      }
+      res.end("Radio stream unavailable");
+    });
 
-streamReq.on("error", () => {
-  if (!res.headersSent) {
-    res.writeHead(502);
-    res.end("Unable to connect to radio stream");
+    return;
   }
+
+  // Serve website files
+  let filePath = req.url === "/"
+    ? path.join(__dirname, "index.html")
+    : path.join(__dirname, req.url);
+
+  const ext = path.extname(filePath).toLowerCase();
+
+  const contentTypes = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon"
+  };
+
+  const contentType =
+    contentTypes[ext] || "application/octet-stream";
+
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        res.writeHead(404, {
+          "Content-Type": "text/plain"
+        });
+        res.end("Not Found");
+      } else {
+        res.writeHead(500, {
+          "Content-Type": "text/plain"
+        });
+        res.end("Server Error");
+      }
+      return;
+    }
+
+    res.writeHead(200, {
+      "Content-Type": contentType
+    });
+
+    res.end(content);
+  });
 });
 
-return;
-}
-
-<audio controls preload="none">
-  <source src="http://51.255.235.165:3988/stream" type="audio/mpeg">
-  Your browser does not support the audio player.
-</audio>
-
-<div class="message">
-  Jesus is Lord • Music • Faith • Encouragement
-</div>
-
-<div class="footer">
-  Walking in the Light Radio
-</div>
-
-</main>
-
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js");
-  });
-}
-</script>
-
-</body>
-</html>
+server.listen(PORT, () => {
+  console.log(`Radio relay is running on port ${PORT}`);
+});
