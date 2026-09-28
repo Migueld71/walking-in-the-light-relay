@@ -3,7 +3,7 @@ const https = require("https");
 const fs = require("fs");
 
 const PORT = process.env.PORT || 8080;
-
+let currentListeners = 0;
 // Put your actual radio stream URL here 
 const STREAM_URL = "http://51.255.235.165:3988/stream";
 
