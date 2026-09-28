@@ -59,6 +59,13 @@ if (req.url === "/sw.js") {
   }
   
   if (req.url === "/stream") {
+    currentListeners++;
+console.log("Current listeners:", currentListeners);
+
+res.on("close", () => {
+  currentListeners = Math.max(0, currentListeners - 1);
+  console.log("Current listeners:", currentListeners);
+});
     const client = STREAM_URL.startsWith("https") ? https : http;
 
     client.get(STREAM_URL, (streamRes) => {
@@ -75,6 +82,12 @@ if (req.url === "/sw.js") {
 
     return;
   }
+
+  if (req.url === "/listeners") {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ currentListeners }));
+  return;
+}
 
   res.writeHead(404);
   res.end("Not found");
