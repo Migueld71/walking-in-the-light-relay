@@ -111,28 +111,27 @@
       John 8:12
     </div>
 
-    <audio controls>
-      <source src="/stream" type="audio/mpeg">
-      Your browser does not support the audio player.
-    </audio>
+<<audio controls preload="none" src="/stream">
+  Your browser does not support the audio player.
+</audio>
 
-    <div class="message">
-      Jesus is Lord • Music • Faith • Encouragement
-    </div>
+<div class="message">
+  Jesus is Lord • Music • Faith • Encouragement
+</div>
 
-    <div class="footer">
-      Walking in the Light Radio
-    </div>
+<div class="footer">
+  Walking in the Light Radio
+</div>
 
-  </main>
+</main>
+
 <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js");
-    });
-  }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js");
+  });
+}
 </script>
-
 
 </body>
 </html>
