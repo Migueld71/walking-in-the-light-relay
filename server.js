@@ -1,9 +1,10 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
 const PORT = process.env.PORT || 8080;
-const STREAM_URL = "http://51.255.235.165:3988/stream";
+const STREAM_URL = "https://eu8.fastcast4u.com/stream/miguel71/";
 const INDEX_PATH = path.join(__dirname, "index.html");
 
 const server = http.createServer((req, res) => {
@@ -25,7 +26,9 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === "/stream") {
-    const upstreamRequest = http.get(STREAM_URL, (streamRes) => {
+    const client = STREAM_URL.startsWith("https") ? https : http;
+
+    const upstreamRequest = client.get(STREAM_URL, (streamRes) => {
       const statusCode = streamRes.statusCode || 200;
 
       res.writeHead(statusCode, {
