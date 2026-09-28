@@ -3,12 +3,22 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
-const PORT = process.env.PORT || 8080;
+const PORT = Number(process.env.PORT || 8080);
 const STREAM_URL = "https://eu8.fastcast4u.com/stream/miguel71/";
 const INDEX_PATH = path.join(__dirname, "index.html");
 
 const server = http.createServer((req, res) => {
   const requestPath = req.url ? req.url.split("?")[0] : "/";
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
+    });
+    res.end();
+    return;
+  }
 
   if (requestPath === "/") {
     fs.readFile(INDEX_PATH, "utf8", (err, html) => {
@@ -18,6 +28,7 @@ const server = http.createServer((req, res) => {
         res.end("Unable to load page.");
         return;
       }
+
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(html);
     });
@@ -25,16 +36,32 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === "/stream") {
-    const upstreamRequest = https.get(STREAM_URL, (streamRes) => {
-      res.writeHead(streamRes.statusCode || 200, {
-        "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-        "Access-Control-Allow-Origin": "*"
-      });
-      streamRes.pipe(res);
-    });
+    const upstreamRequest = https.get(
+      STREAM_URL,
+      {
+        headers: {
+          Accept: "audio/mpeg,*/*;q=0.8",
+          "Icy-Metadata": "1",
+          "User-Agent": "Mozilla/5.0",
+          Range: "bytes=0-"
+        }
+      },
+      (streamRes) => {
+        const statusCode = streamRes.statusCode || 200;
+
+        res.writeHead(statusCode, {
+          "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
+        });
+
+        streamRes.pipe(res);
+      }
+    );
 
     upstreamRequest.on("error", (error) => {
       console.error("Stream proxy error:", error.message);
