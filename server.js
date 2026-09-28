@@ -111,16 +111,28 @@ streamReq.on("error", () => {
 return;
 }
 
-if (req.url === "/listeners") {
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ currentListeners }));
-  return;
+<audio controls preload="none">
+  <source src="http://51.255.235.165:3988/stream" type="audio/mpeg">
+  Your browser does not support the audio player.
+</audio>
+
+<div class="message">
+  Jesus is Lord • Music • Faith • Encouragement
+</div>
+
+<div class="footer">
+  Walking in the Light Radio
+</div>
+
+</main>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js");
+  });
 }
+</script>
 
-res.writeHead(404);
-res.end("Not found");
-});
-
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Walking in the Light Radio relay running on port ${PORT}`);
-});
+</body>
+</html>
