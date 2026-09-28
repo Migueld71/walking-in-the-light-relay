@@ -93,8 +93,8 @@ if (req.url === "/sw.js") {
       "Connection": "keep-alive"
     });
 
-    streamRes.pipe(res);
-
+streamRes.pipe(res);
+return;
 streamRes.on("error", () => {
   removeListener();
   if (!res.writableEnded) res.end();
