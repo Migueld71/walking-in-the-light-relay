@@ -8,7 +8,17 @@ const STREAM_URL = "https://eu8.fastcast4u.com/stream/miguel71/";
 const INDEX_PATH = path.join(__dirname, "index.html");
 
 const server = http.createServer((req, res) => {
-  const requestPath = req.url || "/";
+  const requestPath = req.url ? req.url.split("?")[0] : "/";
+
+  if (req.method === "OPTIONS" && requestPath === "/stream") {
+    res.writeHead(204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
+    });
+    res.end();
+    return;
+  }
 
   if (requestPath === "/") {
     fs.readFile(INDEX_PATH, "utf8", (err, html) => {
@@ -27,20 +37,37 @@ const server = http.createServer((req, res) => {
 
   if (requestPath === "/stream") {
     const client = STREAM_URL.startsWith("https") ? https : http;
+    const upstreamHeaders = {};
 
-    const upstreamRequest = client.get(STREAM_URL, (streamRes) => {
-      const statusCode = streamRes.statusCode || 200;
-
-      res.writeHead(statusCode, {
-        "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-        "Access-Control-Allow-Origin": "*"
-      });
-
-      streamRes.pipe(res);
+    ["accept", "accept-language", "icy-metadata", "range", "user-agent", "referer"].forEach((header) => {
+      if (req.headers[header]) {
+        upstreamHeaders[header] = req.headers[header];
+      }
     });
+
+    const upstreamRequest = client.get(
+      STREAM_URL,
+      {
+        headers: upstreamHeaders
+      },
+      (streamRes) => {
+        const statusCode = streamRes.statusCode || 200;
+        const contentType = streamRes.headers["content-type"] || "audio/mpeg";
+
+        res.writeHead(statusCode, {
+          "Content-Type": contentType,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent",
+          "Accept-Ranges": "bytes"
+        });
+
+        streamRes.pipe(res);
+      }
+    );
 
     upstreamRequest.on("error", (error) => {
       console.error("Stream proxy error:", error.message);
@@ -49,6 +76,10 @@ const server = http.createServer((req, res) => {
     });
 
     req.on("close", () => {
+      upstreamRequest.destroy();
+    });
+
+    req.on("aborted", () => {
       upstreamRequest.destroy();
     });
 
