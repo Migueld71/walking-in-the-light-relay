@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const PORT = process.env.PORT || 8080;
-const STREAM_URL = "http://51.255.235.165:3988/stream";
+const STREAM_URL = "https://eu8.fastcast4u.com/stream/miguel71/";
 const INDEX_PATH = path.join(__dirname, "index.html");
 
 const server = http.createServer((req, res) => {
@@ -25,13 +25,18 @@ const server = http.createServer((req, res) => {
 
   if (requestPath === "/stream") {
     const upstreamRequest = http.get(STREAM_URL, (streamRes) => {
-      res.writeHead(streamRes.statusCode || 200, {
+      const statusCode = streamRes.statusCode || 200;
+
+      res.writeHead(statusCode, {
         "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
       });
+
       streamRes.pipe(res);
     });
 
