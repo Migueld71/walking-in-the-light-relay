@@ -1,27 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Walking in the Light Radio</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #111;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Walking in the Light Radio</title>
+    <style>
+      :root {
+        --bg: #d8d8d8;
+        --shell: #dadbdd;
+        --panel: #f2f2f2;
+        --stroke: rgba(22, 22, 22, 0.28);
+        --dark: #1f2022;
+        --dark-2: #2f3134;
+        --text: #1d1d1d;
+        --soft-text: #4c4c4c;
+        --muted: #8a8a8a;
+        --accent: #f2f2f2;
+        --pill: rgba(255, 255, 255, 0.44);
+        --shadow: rgba(0, 0, 0, 0.12);
+      }
 
-    audio {
-      width: min(90vw, 500px);
-    }
-  </style>
-</head>
-<body>
-  <audio controls autoplay preload="none">
-    <source src="/stream" type="audio/mpeg">
-    Your browser does not support the audio player.
-  </audio>
-</body>
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text);
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+      }
+
+      .phone {
+        position: relative;
+        width: min(100vw, 430px);
+        height: 100vh;
+        background: var(--shell);
+        border-left: 1px solid rgba(0, 0, 0, 0.08);
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .statusbar {
+        height: 54px;
+        background: rgba(17, 17, 18, 0.94);
+        color: #f8f8f8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px 0 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        font-size: 17px;
+      }
+
+      .left-time {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .statusbar .time {
+        display: inline-block;
+        min-width: 56px;
+      }
+
+      .signal-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        opacity: 0.96;
+      }
+
+      .bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+      }
+
+      .bars span {
+        display: block;
+        width: 3px;
+        border-radius: 2px;
+        background: #fff;
+      }
+
+      .bars span:nth-child(1) { height: 4px; }
+      .bars span:nth-child(2) { height: 6px; }
+      .bars span:nth-child(3) { height: 8px; }
+      .bars span:nth-child(4) { height: 10px; }
+
+      .wifi {
+        width: 14px;
+        height: 10px;
+        border: 2px solid transparent;
+        border-top-color: #fff;
+        border-radius: 50% 50% 0 0;
+        transform: rotate(180deg);
+        opacity: 0.9;
+      }
+
+      .battery {
+        width: 18px;
+        height: 10px;
+        border: 2px solid #fff;
+        border-radius: 2px;
+        position: relative;
+      }
+
+      .battery::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        right: -4px;
+        width: 2px;
+        height: 4px;
+        border-radius: 1px;
+        background: #fff;
+      }
+
+      .battery::before {
+        content: "";
+        position: absolute;
+        inset: 2px 2px 2px 2px;
+        border-radius: 1px;
+        background: #fff;
+      }
+
+      .screen {
+        flex: 1;
+        background: rgba(42, 42, 44, 0.05);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .app-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 54px;
+        background: rgba(36, 36, 38, 0.72);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #f3f3f3;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .brand-mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #7fe0ff, #1460d4 50%, #2a2a2a);
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+        position: relative;
+      }
+
+      .brand-mark::before {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .header-actions .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #fff;
+        opacity: 0.7;
+      }
+
+      .screen-blank {
+        position: absolute;
+        inset: 54px 0 110px 0;
+        background: rgba(178, 178, 178, 0.38);
+      }
+
+      .player-bar {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        height: 88px;
+        background: rgba(255, 255, 255, 0.42);
+        border: 1px solid rgba(0, 0, 0, 0.18);
+        border-radius: 999px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 5px 12px rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px 0 18px;
+        backdrop-filter: blur(1px);
+      }
+
+      .nav {
+        border: 0;
+        background: transparent;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        color: var(--dark);
+      }
+
+      .nav svg {
+        width: 26px;
+        height: 26px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .home-btn {
+        width: 38px;
+        height: 38px;
+      }
+
+      .play-btn {
+        width: 38px;
+        height: 38px;
+      }
+
+      .play-btn svg {
+        width: 30px;
+        height: 30px;
+      }
+
+      .stream-title {
+        flex: 1;
+        text-align: center;
+        font-size: clamp(26px, 4vw, 40px);
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        color: #111214;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 12px;
+      }
+
+      .stream-title span {
+        display: inline-block;
+        transform: translateY(-1px);
+      }
+
+      .favourite {
+        width: 36px;
+        height: 36px;
+      }
+
+      .counter {
+        min-width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: rgba(29, 29, 29, 0.12);
+        font-size: 14px;
+        font-weight: 700;
+        color: #101010;
+      }
+
+      .menu-btn {
+        width: 36px;
+        height: 36px;
+      }
+
+      .menu-btn .menu-dots {
+        display: flex;
+        width: 18px;
+        height: 18px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .menu-btn .menu-dots span {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #1a1a1a;
+        display: block;
+      }
+
+      .player-bar::before {
+        content: "";
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 11px;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.08);
+      }
+
+      audio {
+        display: none;
+      }
+
+      @media (max-width: 420px) {
+        .stream-title {
+          font-size: 24px;
+          letter-spacing: -0.04em;
+        }
+
+        .player-bar {
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="statusbar">
+        <div class="left-time">
+          <span class="time">7:33</span>
+        </div>
+        <div class="signal-wrap" aria-label="network status">
+          <div class="bars" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="wifi" aria-hidden="true"></div>
+          <div class="battery" aria-hidden="true"></div>
+          <span>100</span>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="app-header">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span>Walking in the Light</span>
+          </div>
+          <div class="header-actions" aria-label="Current station">
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <div class="screen-blank" aria-hidden="true"></div>
+
+        <div class="player-bar" aria-label="Radio player">
+          <button class="nav home-btn" type="button" aria-label="Home">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 10.5 12 3l9 7.5" />
+              <path d="M5 9.5V20h14V9.5" />
+              <path d="M9.5 20v-6h5v6" />
+            </svg>
+          </button>
+
+          <button class="nav play-btn" id="toggleStream" type="button" aria-label="Play or pause">
+            <svg viewBox="0 0 24 24" aria-hidden="true" class="speaker-icon">
+              <path d="M5 9.5h3.5L14 5v14l-5.5-4.5H5z" />
+              <path d="M15.5 9a4.5 4.5 0 0 1 0 6" />
+              <path d="M18.2 6.5a7.5 7.5 0 0 1 0 11" />
+            </svg>
+          </button>
+
+          <div class="stream-title"><span>st4u.com:2199</span></div>
+
+          <button class="nav favourite" type="button" aria-label="Favorite station">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2.4 14.9 9l7 .9-5.1 5 1.2 7.1L12 0v2.4z" style="display:none" />
+              <path d="M12 3.5 14.6 9l6.1.9-4.4 4.3 1 6.1L12 0v3.5z" transform="translate(0 0)" />
+              <path d="M12 3.5 9.4 9l-6.1.9 4.4 4.3-1 6.1L12 0v3.5z" transform="translate(0 0)" />
+              <path d="M12 3.5 12 20.8l5.1-2.7 1-6.1-4.4-4.3-1.1-4.2z" opacity="0.5" />
+            </svg>
+          </button>
+
+          <div class="counter" aria-label="Listeners">4</div>
+
+          <button class="nav menu-btn" type="button" aria-label="Menu">
+            <span class="menu-dots" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <audio id="radioPlayer" preload="none" src="/stream" crossorigin="anonymous"></audio>
+    </div>
+
+    <script>
+      const radioPlayer = document.getElementById('radioPlayer');
+      const toggleStream = document.getElementById('toggleStream');
+      const playIcon = toggleStream.querySelector('svg');
+
+      let isPlaying = false;
+
+      const setPlayingState = (playing) => {
+        isPlaying = playing;
+        if (playing) {
+          playIcon.innerHTML = `
+            <path d="M8 6h3v12H8zM15 6h3v12h-3z" />
+          `;
+          toggleStream.setAttribute('aria-label', 'Pause stream');
+        } else {
+          playIcon.innerHTML = `
+            <path d="M5 9.5h3.5L14 5v14l-5.5-4.5H5z" />
+            <path d="M15.5 9a4.5 4.5 0 0 1 0 6" />
+            <path d="M18.2 6.5a7.5 7.5 0 0 1 0 11" />
+          `;
+          toggleStream.setAttribute('aria-label', 'Play stream');
+        }
+      };
+
+      toggleStream.addEventListener('click', async () => {
+        try {
+          if (!isPlaying) {
+            await radioPlayer.play();
+            setPlayingState(true);
+          } else {
+            radioPlayer.pause();
+            setPlayingState(false);
+          }
+        } catch (error) {
+          console.error('Stream toggle failed:', error);
+        }
+      });
+
+      radioPlayer.addEventListener('error', () => {
+        setPlayingState(false);
+      });
+
+      setPlayingState(false);
+    </script>
+  </body>
 </html>
