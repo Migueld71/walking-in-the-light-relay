@@ -1,80 +1,116 @@
 const http = require("http");
 const https = require("https");
 const fs = require("fs");
-const path = require("path");
 
-const PORT = Number(process.env.PORT || 8080);
-const STREAM_URL = "https://eu8.fastcast4u.com/stream/miguel71/";
-const INDEX_PATH = path.join(__dirname, "index.html");
+const PORT = process.env.PORT || 8080;
+let currentListeners = 0;
+// Put your actual radio stream URL here 
+const STREAM_URL = "http://51.255.235.165:3988/stream";
 
 const server = http.createServer((req, res) => {
-  const requestPath = req.url ? req.url.split("?")[0] : "/";
+  if (req.url === "/") {
+  fs.readFile(__dirname + "/index.html", (err, data) => {
+    if (err) {
+      res.writeHead(500);
+      res.end("Error loading radio page");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
+  });
+  return;
+}
+if (req.url === "/manifest.json") {
+  fs.readFile(__dirname + "/manifest.json", (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/manifest+json" });
+    res.end(data);
+  });
+  return;
+}
 
-  if (req.method === "OPTIONS") {
-    res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
-    });
-    res.end();
-    return;
+if (req.url === "/sw.js") {
+  fs.readFile(__dirname + "/sw.js", (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "application/javascript" });
+    res.end(data);
+  });
+  return;
+}
+  if (req.url === "/icon-192.png" || req.url === "/icon-512.png") {
+  fs.readFile(__dirname + req.url, (err, data) => {
+    if (err) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    res.writeHead(200, { "Content-Type": "image/png" });
+    res.end(data);
+  });
+  return;
   }
+  
+  if (req.url === "/stream") {
+  const client = STREAM_URL.startsWith("https") ? https : http;
 
-  if (requestPath === "/") {
-    fs.readFile(INDEX_PATH, "utf8", (err, html) => {
-      if (err) {
-        console.error("Error loading index.html:", err);
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Unable to load page.");
-        return;
+  const streamReq = client.get(STREAM_URL, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+      "Icy-MetaData": "0"
+    }
+  }, (streamRes) => {
+    if (streamRes.statusCode !== 200) {
+      res.writeHead(502);
+      res.end("Radio stream unavailable");
+      return;
+    }
+
+    currentListeners++;
+    console.log("Current listeners:", currentListeners);
+
+    let counted = true;
+    const removeListener = () => {
+      if (counted) {
+        counted = false;
+        currentListeners = Math.max(0, currentListeners - 1);
+        console.log("Current listeners:", currentListeners);
       }
+    };
 
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(html);
+    res.on("close", removeListener);
+
+    res.writeHead(200, {
+      "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
+      "Cache-Control": "no-cache, no-store",
+      "Connection": "keep-alive"
     });
-    return;
-  }
 
-  if (requestPath === "/stream") {
-    const upstreamRequest = https.get(
-      STREAM_URL,
-      {
-        headers: {
-          Accept: "audio/mpeg,*/*;q=0.8",
-          "Icy-Metadata": "1",
-          "User-Agent": "Mozilla/5.0",
-          Range: "bytes=0-"
-        }
-      },
-      (streamRes) => {
-        const statusCode = streamRes.statusCode || 200;
-
-        res.writeHead(statusCode, {
-          "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS",
-          "Access-Control-Allow-Headers": "Range, Accept, Icy-Metadata, User-Agent"
-        });
-
-        streamRes.pipe(res);
-      }
-    );
-
-    upstreamRequest.on("error", (error) => {
-      console.error("Stream proxy error:", error.message);
-      res.writeHead(502, { "Content-Type": "text/plain" });
-      res.end("Unable to connect to radio stream.");
-    });
+    streamRes.pipe(res);
 
     req.on("close", () => {
-      upstreamRequest.destroy();
+      removeListener();
+      streamReq.destroy();
     });
+  });
 
-    return;
-  }
+  streamReq.on("error", (err) => {
+    console.error("Stream error:", err);
+    if (!res.headersSent) {
+      res.writeHead(502, { "Content-Type": "text/plain" });
+    }
+    res.end("Radio stream unavailable");
+  });
+
+  return;
+}
 
   res.writeHead(404, { "Content-Type": "text/plain" });
   res.end("Not found");
