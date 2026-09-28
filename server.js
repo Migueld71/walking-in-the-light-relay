@@ -95,30 +95,30 @@ if (req.url === "/sw.js") {
 
     streamRes.pipe(res);
 
-    streamRes.on("error", () => {
-      removeListener();
-      if (!res.writableEnded) res.end();
-    });
-  });
+streamRes.on("error", () => {
+  removeListener();
+  if (!res.writableEnded) res.end();
+});
+});
 
-  streamReq.on("error", () => {
-    if (!res.headersSent) {
-      res.writeHead(502);
-      res.end("Unable to connect to radio stream");
-    }
-  });
-
-  return;
+streamReq.on("error", () => {
+  if (!res.headersSent) {
+    res.writeHead(502);
+    res.end("Unable to connect to radio stream");
   }
+});
 
-  if (req.url === "/listeners") {
+return;
+}
+
+if (req.url === "/listeners") {
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ currentListeners }));
   return;
 }
 
-  res.writeHead(404);
-  res.end("Not found");
+res.writeHead(404);
+res.end("Not found");
 });
 
 server.listen(PORT, "0.0.0.0", () => {
