@@ -59,28 +59,56 @@ if (req.url === "/sw.js") {
   }
   
   if (req.url === "/stream") {
-    currentListeners++;
-console.log("Current listeners:", currentListeners);
+  const client = STREAM_URL.startsWith("https") ? https : http;
 
-res.on("close", () => {
-  currentListeners = Math.max(0, currentListeners - 1);
-  console.log("Current listeners:", currentListeners);
-});
-    const client = STREAM_URL.startsWith("https") ? https : http;
-
-    client.get(STREAM_URL, (streamRes) => {
-      res.writeHead(streamRes.statusCode || 200, {
-        "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
-        "Cache-Control": "no-cache"
-      });
-
-      streamRes.pipe(res);
-    }).on("error", () => {
+  const streamReq = client.get(STREAM_URL, {
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+      "Icy-MetaData": "0"
+    }
+  }, (streamRes) => {
+    if (streamRes.statusCode !== 200) {
       res.writeHead(502);
-      res.end("Unable to connect to radio stream.");
+      res.end("Radio stream unavailable");
+      return;
+    }
+
+    currentListeners++;
+    console.log("Current listeners:", currentListeners);
+
+    let counted = true;
+    const removeListener = () => {
+      if (counted) {
+        counted = false;
+        currentListeners = Math.max(0, currentListeners - 1);
+        console.log("Current listeners:", currentListeners);
+      }
+    };
+
+    res.on("close", removeListener);
+
+    res.writeHead(200, {
+      "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
+      "Cache-Control": "no-cache, no-store",
+      "Connection": "keep-alive"
     });
 
-    return;
+    streamRes.pipe(res);
+
+    streamRes.on("error", () => {
+      removeListener();
+      if (!res.writableEnded) res.end();
+    });
+  });
+
+  streamReq.on("error", () => {
+    if (!res.headersSent) {
+      res.writeHead(502);
+      res.end("Unable to connect to radio stream");
+    }
+  });
+
+  return;
   }
 
   if (req.url === "/listeners") {
