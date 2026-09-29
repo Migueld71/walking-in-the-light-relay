@@ -59,63 +59,22 @@ if (req.url === "/sw.js") {
   }
   
   if (req.url === "/stream") {
-  const client = STREAM_URL.startsWith("https") ? https : http;
+    const client = STREAM_URL.startsWith("https") ? https : http;
 
-  const streamReq = client.get(STREAM_URL, {
-    headers: {
-      "User-Agent": "Mozilla/5.0",
-      "Icy-MetaData": "0"
-    }
-  }, (streamRes) => {
-    if (streamRes.statusCode !== 200) {
+    client.get(STREAM_URL, (streamRes) => {
+      res.writeHead(streamRes.statusCode || 200, {
+        "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
+        "Cache-Control": "no-cache"
+      });
+
+      streamRes.pipe(res);
+    }).on("error", () => {
       res.writeHead(502);
-      res.end("Radio stream unavailable");
-      return;
-    }
-
-    currentListeners++;
-    console.log("Current listeners:", currentListeners);
-
-    let counted = true;
-    const removeListener = () => {
-      if (counted) {
-        counted = false;
-        currentListeners = Math.max(0, currentListeners - 1);
-        console.log("Current listeners:", currentListeners);
-      }
-    };
-
-    res.on("close", removeListener);
-
-    res.writeHead(200, {
-      "Content-Type": streamRes.headers["content-type"] || "audio/mpeg",
-      "Cache-Control": "no-cache, no-store",
-      "Connection": "keep-alive"
+      res.end("Unable to connect to radio stream.");
     });
 
-    streamRes.pipe(res);
+    return;
+  }
 
-    req.on("close", () => {
-      removeListener();
-      streamReq.destroy();
-    });
-  });
-
-  streamReq.on("error", (err) => {
-    console.error("Stream error:", err);
-    if (!res.headersSent) {
-      res.writeHead(502, { "Content-Type": "text/plain" });
-    }
-    res.end("Radio stream unavailable");
-  });
-
-  return;
-}
-
-  res.writeHead(404, { "Content-Type": "text/plain" });
-  res.end("Not found");
-});
-
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Walking in the Light Radio relay running on port ${PORT}`);
-});
+  res.writeHead(404);
+  res.end("Not found
