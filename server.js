@@ -76,5 +76,10 @@ if (req.url === "/sw.js") {
     return;
   }
 
-  res.writeHead(404);
-  res.end("Not found
+    res.writeHead(404);
+  res.end("Not found");
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Walking in the Light Radio relay running on port ${PORT}`);
+});
