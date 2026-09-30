@@ -5,7 +5,7 @@ const fs = require("fs");
 const PORT = process.env.PORT || 8080;
 
 // Your radio station stream
-const STREAM_URL = "http://51.255.235.165:3988/stream";
+const STREAM_URL = "http://ip165.ip-51-255-235.eu:3988/stream";
 
 const server = http.createServer((req, res) => {
 
