@@ -70,17 +70,19 @@
 <body>
 
   <div class="radio">
+
     <h1>100 FM-D</h1>
 
     <div class="subtitle">
       Live Radio
     </div>
 
-    <button id="playButton" type="button">▶</button>
+    <button id="playButton">▶</button>
 
     <div id="status">
       Tap Play to Listen
     </div>
+
   </div>
 
   <audio id="radioStream" preload="none"></audio>
@@ -93,4 +95,24 @@
       document.getElementById("radioStream");
 
     const button =
-      document.getElementBy
+      document.getElementById("playButton");
+
+    const status =
+      document.getElementById("status");
+
+    audio.src = STREAM_URL;
+
+    button.addEventListener("click", async function () {
+
+      if (audio.paused) {
+
+        status.textContent = "Connecting...";
+
+        try {
+
+          audio.src =
+            STREAM_URL + "?t=" + Date.now();
+
+          await audio.play();
+
+          button.textContent = "
