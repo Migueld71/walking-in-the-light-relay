@@ -6,6 +6,12 @@
 
   <title>100 FM-D</title>
 
+  <meta name="theme-color" content="#07111f">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
   <style>
     * {
       box-sizing: border-box;
@@ -31,133 +37,4 @@
     }
 
     .radio {
-      width: 100%;
-      max-width: 420px;
-      padding: 40px 25px;
-      background: #1d1d1d;
-      border-radius: 24px;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 38px;
-    }
-
-    .subtitle {
-      margin-top: 10px;
-      margin-bottom: 30px;
-      font-size: 18px;
-    }
-
-    #playButton {
-      width: 120px;
-      height: 120px;
-      border: none;
-      border-radius: 50%;
-      background: #ffffff;
-      color: #111111;
-      font-size: 46px;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 25px;
-      font-size: 17px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <div class="radio">
-
-    <h1>100 FM-D</h1>
-
-    <div class="subtitle">
-      Live Radio
-    </div>
-
-    <button id="playButton">▶</button>
-
-    <div id="status">
-      Tap Play to Listen
-    </div>
-
-  </div>
-
-  <audio id="radioStream" preload="none"></audio>
-
-  <script>
-    const STREAM_URL =
-      "https://misty-hall-100f.md2271.workers.dev/stream";
-
-    const audio =
-      document.getElementById("radioStream");
-
-    const button =
-      document.getElementById("playButton");
-
-    const status =
-      document.getElementById("status");
-
-    audio.src = STREAM_URL;
-
-    button.addEventListener("click", async function () {
-
-      if (audio.paused) {
-
-        status.textContent = "Connecting...";
-
-        try {
-
-          audio.src =
-            STREAM_URL + "?t=" + Date.now();
-
-          await audio.play();
-
-          button.textContent = "❚❚";
-          status.textContent = "LIVE";
-
-        } catch (error) {
-
-          button.textContent = "▶";
-          status.textContent =
-            "Unable to connect";
-
-        }
-
-      } else {
-
-        audio.pause();
-
-        button.textContent = "▶";
-        status.textContent = "Paused";
-
-      }
-
-    });
-
-    audio.addEventListener("playing", function () {
-
-      button.textContent = "❚❚";
-      status.textContent = "LIVE";
-
-    });
-
-    audio.addEventListener("waiting", function () {
-
-      status.textContent = "Connecting...";
-
-    });
-
-    audio.addEventListener("error", function () {
-
-      button.textContent = "▶";
-      status.textContent =
-        "Stream connection error";
-
-    });
-  </script>
-
-</body>
-</html>
+      width: 100
